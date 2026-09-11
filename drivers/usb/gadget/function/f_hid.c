@@ -16,7 +16,9 @@
 #include <linux/wait.h>
 #include <linux/sched.h>
 #include <linux/usb/g_hid.h>
+#include <linux/delay.h>
 
+#include "f_hid.h"
 #include "u_f.h"
 #include "u_hid.h"
 
@@ -239,6 +241,8 @@ static struct usb_gadget_strings *ct_func_strings[] = {
 
 /*-------------------------------------------------------------------------*/
 /*                              Char Device                                */
+
+
 
 static ssize_t f_hidg_read(struct file *file, char __user *buffer,
 			size_t count, loff_t *ptr)
@@ -545,7 +549,10 @@ static int hidg_setup(struct usb_function *f,
 		  | HID_REQ_GET_PROTOCOL):
 		VDBG(cdev, "get_protocol\n");
 		length = min_t(unsigned int, length, 1);
-		((u8 *) req->buf)[0] = hidg->protocol;
+		if (hidg->bInterfaceSubClass == USB_INTERFACE_SUBCLASS_BOOT)
+			((u8 *) req->buf)[0] = 0;	/* Boot protocol */
+		else
+			((u8 *) req->buf)[0] = 1;	/* Report protocol */
 		goto respond;
 		break;
 
@@ -771,6 +778,8 @@ static int hidg_bind(struct usb_configuration *c, struct usb_function *f)
 	struct device		*device;
 	int			status;
 	dev_t			dev;
+
+	pr_info("%s: creating device %p\n", __func__, hidg);
 
 	/* maybe allocate device-global string IDs, and patch descriptors */
 	us = usb_gstrings_attach(c->cdev, ct_func_strings,
@@ -1155,6 +1164,61 @@ DECLARE_USB_FUNCTION_INIT(hid, hidg_alloc_inst, hidg_alloc);
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Fabien Chouteau");
 
+int hidg_bind_config(struct usb_configuration *c,
+			    struct hidg_func_descriptor *fdesc, int index)
+{
+	struct f_hidg *hidg;
+	int status;
+
+	if (index >= minors)
+		return -ENOENT;
+
+	/* maybe allocate device-global string IDs, and patch descriptors */
+	if (ct_func_string_defs[CT_FUNC_HID_IDX].id == 0) {
+		status = usb_string_id(c->cdev);
+		if (status < 0)
+			return status;
+		ct_func_string_defs[CT_FUNC_HID_IDX].id = status;
+		hidg_interface_desc.iInterface = status;
+	}
+
+	/* allocate and initialize one new instance */
+	hidg = kzalloc(sizeof *hidg, GFP_KERNEL);
+	if (!hidg)
+		return -ENOMEM;
+
+	hidg->minor = index;
+	hidg->bInterfaceSubClass = fdesc->subclass;
+	hidg->bInterfaceProtocol = fdesc->protocol;
+	hidg->report_length = fdesc->report_length;
+	hidg->report_desc_length = fdesc->report_desc_length;
+	hidg->report_desc = kmemdup(fdesc->report_desc,
+				    fdesc->report_desc_length,
+				    GFP_KERNEL);
+	if (!hidg->report_desc) {
+		kfree(hidg);
+		return -ENOMEM;
+	}
+
+	hidg->func.name    = "hid";
+	hidg->func.strings = ct_func_strings;
+	hidg->func.bind    = hidg_bind;
+	hidg->func.unbind  = hidg_unbind;
+	hidg->func.set_alt = hidg_set_alt;
+	hidg->func.disable = hidg_disable;
+	hidg->func.setup   = hidg_setup;
+	hidg->func.free_func = hidg_free;
+
+	/* this could me made configurable at some point */
+	hidg->qlen	   = 4;
+
+	status = usb_add_function(c, &hidg->func);
+	if (status)
+		kfree(hidg);
+
+	return status;
+}
+
 int ghid_setup(struct usb_gadget *g, int count)
 {
 	int status;
@@ -1190,3 +1254,5 @@ void ghid_cleanup(void)
 	class_destroy(hidg_class);
 	hidg_class = NULL;
 }
+
+
