@@ -1,0 +1,18 @@
+# =========================
+# Kernel Builder Config
+# =========================
+
+# --- Architecture ---
+ARCH=arm64
+
+# --- Toolchain --- Root of folder of the toolchain here
+TD=~/toolchains/clang-10.0
+
+# --- Paths ---
+BIN_PATH=${TD}/bin
+CC=${BIN_PATH}/clang
+CLANG_TRIPLE=aarch64-linux-gnu-
+CROSS_COMPILE=~/toolchains/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-
+
+# --- Build output ---
+OUT_DIR=out
