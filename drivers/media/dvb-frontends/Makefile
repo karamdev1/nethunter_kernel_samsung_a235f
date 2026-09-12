@@ -30,6 +30,7 @@ obj-$(CONFIG_DVB_DIB3000MB) += dib3000mb.o
 obj-$(CONFIG_DVB_DIB3000MC) += dib3000mc.o dibx000_common.o
 obj-$(CONFIG_DVB_DIB7000M) += dib7000m.o dibx000_common.o
 obj-$(CONFIG_DVB_DIB7000P) += dib7000p.o dibx000_common.o
+CFLAGS_dib7000p.o += -Wno-self-assign
 obj-$(CONFIG_DVB_DIB8000) += dib8000.o dibx000_common.o
 obj-$(CONFIG_DVB_DIB9000) += dib9000.o dibx000_common.o
 obj-$(CONFIG_DVB_MT312) += mt312.o
