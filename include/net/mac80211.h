@@ -1170,6 +1170,7 @@ enum mac80211_rx_flags {
 	RX_FLAG_AMPDU_EOF_BIT_KNOWN	= BIT(25),
 	RX_FLAG_RADIOTAP_HE		= BIT(26),
 	RX_FLAG_RADIOTAP_HE_MU		= BIT(27),
+	RX_FLAG_NO_PSDU                 = BIT(28),
 };
 
 /**
