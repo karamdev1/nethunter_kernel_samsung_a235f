@@ -77,6 +77,9 @@ cfg80211_ssid_eq(struct cfg80211_ssid *a, struct cfg80211_ssid *b)
 
 #endif
 
+#ifndef static_assert
+#define static_assert(expr, ...) _Static_assert(expr, "" __VA_ARGS__)
+#endif
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0)) || defined(RHEL_RELEASE) && (RHEL_RELEASE_CODE < RHEL_RELEASE_VERSION(8,0))
 /* see Documentation/timers/timers-howto.rst for the thresholds */
