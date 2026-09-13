@@ -6,6 +6,11 @@ ccflags-y += -O2
 ccflags-y += -Wno-unused-variable
 ccflags-y += -Wno-unused-label
 ccflags-y += -Wno-unused-function
+ccflags-y += -Wno-enum-conversion
+ccflags-y += -Wno-parentheses-equality
+ccflags-y += -Wno-constant-conversion
+ccflags-y += -Wno-self-assign
+ccflags-y += -Wno-unused-const-variable
 
 GCC_VER_49 := $(shell echo `$(CC) -dumpversion | cut -f1-2 -d.` \>= 4.9 | bc )
 ifeq ($(GCC_VER_49),1)
