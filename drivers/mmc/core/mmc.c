@@ -56,7 +56,7 @@ static const unsigned int taac_mant[] = {
 #define UNSTUFF_BITS(resp,start,size)					\
 	({								\
 		const int __size = size;				\
-		const u32 __mask = (__size < 32 ? 1 << __size : 0) - 1;	\
+		const u32 __mask = (__size < 32 ? (u32)(1ULL << __size) : 0) - 1;	\
 		const int __off = 3 - ((start) / 32);			\
 		const int __shft = (start) & 31;			\
 		u32 __res;						\
